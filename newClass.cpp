@@ -3,90 +3,81 @@
 #include<iostream>
 #include <vector>
 #include<algorithm>
+#include<initializer_list>
 
 #include "newClass.h"
 using namespace std;
 
-Adress::Adress(const string& nomRue, unsigned nmRue, unsigned postal, const string& localite)
-: nomRue(nomRue), nmRue(nmRue), postal(postal), localite(localite) {
-}
-
-void Adress::setNomRue(const string& nomRue) {
-    this->nomRue = nomRue;
-}
-
-void Adress::setNmRue(unsigned nmRue) {
-    this->nmRue = nmRue;
-}
-
-void Adress::setPostal(unsigned postal) {
-    this->postal = postal;
-}
-
-void Adress::setLocalite(const string localite) {
-    this->localite = localite;
-}
-
-string Adress::toString() const {
-    if (nomRue.size() == 0) {
-        return "";
-    } else {
-        string str = nomRue + ' ' + to_string(nmRue) + ','
-                + to_string(postal) + ',' + localite;
-        return str;
-    }
-}
-
-string Adress::getNomRue()const {
-    return nomRue;
-}
-
-string Adress::getLocalite()const {
-    return localite;
-}
-
-unsigned Adress::getNmRue()const {
-    return nmRue;
-}
-
-unsigned Adress::getPostal()const {
-    return postal;
-}
 
 
 //personne class*******************************************
 //constructeur
 
-Personne::Personne(const string& nom, const string& prenom)
-: nom(nom), prenom(prenom) {
+Personne::Personne(const string& nom, const string& prenom, const Adress& ad,
+        const initializer_list<Hobby>& hb, const initializer_list<Personne*>& amis) {
+    this->nom = nom;
+    this->prenom = prenom;
+    this->adress = ad;
+    for (auto it = hb.begin(); it != hb.end(); ++it)
+        this->hobbie.push_back(*it);
+    for (auto it = amis.begin(); it != amis.end(); ++it){
+        this->ami.push_back(*it);
+    (**it).ami.push_back(this);
+    }
 }
-//setteur
+//surchage de constructeur
+Personne::Personne(const string& nom, const string& prenom, const Adress& ad,
+        const initializer_list<Hobby>& hb) {
+    this->nom = nom;
+    this->prenom = prenom;
+    this->adress = ad;
+    initializer_list<Hobby>::iterator it;
+    for (it = hb.begin(); it != hb.end(); ++it)
+        this->hobbie.push_back(*it);
 
-void Personne::setAdress(const string& nomRue, unsigned nmRue, unsigned postal, const string& localite) {
+}
+//modificateur
+
+void Personne::setAdress(const string& nomRue, const string& nmRue, unsigned postal, const string& localite) {
     this->adress = Adress(nomRue, nmRue, postal, localite);
 
 }
 
-void Personne::ajouterHobbie(const HOBBIE& hobbie) {
-
-    this->hobbie.push_back(hobbie);
+void Personne::ajouterHobbie(const std::initializer_list<Hobby>& hb) {
+    bool find = 0;
+    for (auto it = hb.begin(); it != hb.end(); ++it) {
+        find = 0;
+        for (size_t i = 0; i<this->hobbie.size(); ++i) {
+            if (*it == hobbie.at(i)) {
+                find = 1;
+                i = this->hobbie.size();
+            }
+        }
+        if (!find)
+            this->hobbie.push_back(*it);
+    }
 }
 
-void Personne::ajouterAmi(Personne& personne) {
+void Personne::ajouterAmi(const initializer_list<Personne*>& amis) {
     bool find = 0;
-    for (const Personne& p : ami) {
-        if (p.nom == personne.nom && p.prenom == personne.prenom) {
-            find = 1;
-            return;
+    for (auto it = amis.begin(); it != amis.end(); ++it) {
+        find = 0;
+        for (const Personne* ad : this->ami) {
+
+            if (*it == ad) {
+                find = 1;
+                break;
+            }
+        }
+        if (!find && *it != this) {
+            this->ami.push_back(*it);
+            (**it).ami.push_back(this);
+
         }
     }
-    if (!find&&!(personne.nom == this->nom && personne.prenom == this->prenom)) {
-        this->ami.push_back(personne);
-        personne.ami.push_back(*this);
-    }
 }
 
-//getteur
+//selecteur
 
 string Personne::getNom() const {
     return nom;
@@ -101,47 +92,100 @@ string Personne::getAdress() const {
 }
 
 string Personne::getHobbies() const {
-    string str;
-    if (hobbie.size() == 0) {
-        str = "Il n'y a aucune hobbie.\n";
-    } else {
-        for (const HOBBIE& h : hobbie) {
+    string str = "[";
+        for (const Hobby& h : hobbie) {
             switch ((int) h) {
                 case 1:
-                    str += "sport  ";
+                    str += "sport";
                     break;
                 case 2:
-                    str += "musique  ";
+                    str += "musique";
                     break;
                 case 3:
-                    str += "cinema  ";
+                    str += "cinema";
                     break;
                 case 4:
-                    str += "lecture  ";
+                    str += "lecture";
                     break;
                 default:
                     break;
             }
+            if (h != hobbie.back())
+                str += ", ";
         }
+    str += ']';
+    return str;
+}
+
+string Personne::getAmis()const {
+    string str = "[";
+    ;
+    if (ami.size() == 0) {
+        str += "Il n'y a aucun d'ami.\n";
+    } else {
+        for (const Personne* p : ami) {
+            str += (*p).prenom + ' ' + (*p).nom;
+            if (p != ami.back())
+                str += ", ";
+        }
+    }
+
+    str += ']';
+    return str;
+}
+//autre
+ostream& operator<<(ostream& os, const Personne& personne) {
+    os << personne.prenom << ' ' << personne.nom<<endl
+            << personne.getAdress()
+            << "\nHobbies : " << personne.getHobbies()
+            << "\nAmi(e)s : " << personne.getAmis();
+    return os;
+}
+
+//******************** class adress *****************************
+//constructeur
+Adress::Adress(const string& nomRue, const string& nmRue, unsigned postal, const string& localite)
+: nomRue(nomRue), nmRue(nmRue), postal(postal), localite(localite) {
+}
+//modificateur
+void Adress::setNomRue(const string& nomRue) {
+    this->nomRue = nomRue;
+}
+
+void Adress::setNmRue(const string& nmRue) {
+    this->nmRue = nmRue;
+}
+
+void Adress::setPostal(unsigned postal) {
+    this->postal = postal;
+}
+
+void Adress::setLocalite(const string localite) {
+    this->localite = localite;
+}
+//selecteur
+string Adress::toString() const {
+    if (nomRue.size() == 0) {
+        return "";
+    } else {
+        string str = nomRue + ' ' + nmRue + '\n'
+                + to_string(postal) + ' ' + localite;
         return str;
     }
 }
 
-string Personne::getAmis()const {
-    string str;
-    if (ami.size() == 0) {
-        str = "Il n'y a aucun d'ami.\n";
-    } else {
-        for (const Personne& p : ami)
-            str += p.nom + '.' + p.prenom + "   ";
-    }
-    return str;
+string Adress::getNomRue()const {
+    return nomRue;
 }
 
-ostream& operator<<(ostream& os, const Personne& personne) {
-    os << personne.getNom() << '.' << personne.getPrenom()
-            << "\nAdress  : " << personne.getAdress()
-            << "\nHobbies : " << personne.getHobbies()
-            << "\nAmis    : " << personne.getAmis() << endl;
-    return os;
+string Adress::getLocalite()const {
+    return localite;
+}
+
+string Adress::getNmRue()const {
+    return nmRue;
+}
+
+unsigned Adress::getPostal()const {
+    return postal;
 }

@@ -5,49 +5,53 @@
 #include<vector>
 #include<iostream>
 
-enum class HOBBIE {
-    sport = 1, musique = 2, cinema = 3, lecture = 4
+
+enum class Hobby {
+    SPORT = 1, MUSIQUE = 2, CINEMA = 3, LECTURE = 4
 };
 
 class Adress {
 public:
-    Adress(const std::string& nomRue = "", unsigned nmRue = 0, unsigned postal = 0, const std::string& localite = "");
+    Adress(const std::string& nomRue = "", const std::string& nmRue = "", unsigned postal = 0, const std::string& localite = "");
     void setNomRue(const std::string& nomRue);
-    void setNmRue(unsigned nmRue);
+    void setNmRue(const std::string& nmRue);
     void setPostal(unsigned postal);
     void setLocalite(const std::string localite);
     std::string toString() const;
     std::string getNomRue()const;
     std::string getLocalite()const;
-    unsigned getNmRue()const;
+    std::string getNmRue()const;
     unsigned getPostal()const;
 private:
     std::string nomRue;
-    unsigned nmRue;
+    std::string nmRue;
     unsigned postal;
     std::string localite;
 };
 
 class Personne {
-   friend std::ostream& operator<<(std::ostream& os,const Personne& personne);
+    friend std::ostream& operator<<(std::ostream& os, const Personne& personne);
 public:
     //constructeur
-    Personne(const std::string& nom = "", const std::string& prenom = "");
+    Personne(const std::string& nom, const std::string& prenom,
+            const Adress& ad, const std::initializer_list<Hobby>& hb, const std::initializer_list<Personne*>& amis);
+    Personne(const std::string& nom, const std::string& prenom,
+           const Adress& ad, const std::initializer_list<Hobby>& hb);
     //setteur
-    void setAdress(const std::string& nomRue, unsigned nmRue, unsigned postal, const std::string& localite);
-    void ajouterHobbie(const HOBBIE& hobbie);
-    void ajouterAmi(Personne& personne);
+    void setAdress(const std::string& nomRue, const std::string& nmRue, unsigned postal, const std::string& localite);
+    void ajouterHobbie(const std::initializer_list<Hobby>& hb);
+    void ajouterAmi(const std::initializer_list<Personne*>& amis);
     std::string getNom() const;
-    std::string getPrenom()const ;
-    std::string getAdress()const ;
+    std::string getPrenom()const;
+    std::string getAdress()const;
     std::string getHobbies()const;
     std::string getAmis()const;
-    
+
 private:
     std::string nom, prenom;
     Adress adress;
-    std::vector<HOBBIE> hobbie;
-    std::vector<Personne> ami;
+    std::vector<Hobby> hobbie;
+    std::vector<Personne*> ami;
 };
 
 #endif /* NEWCLASS_H */
